@@ -97,7 +97,7 @@ class Registro:
         if resultado:
             self.tree.insert('', 0, text=resultado[1], values=(resultado[2], resultado[3], resultado[4], resultado[5]))
         else:
-            query = 'SELECT * FROM libros ORDER BY codigo DESC'
+            query = 'SELECT * FROM libros where activo="si" ORDER BY codigo DESC'
             db_rows = self.query.ejecutar_consulta(query)
             for row in db_rows:
                 self.tree.insert('', 0, text=row[1], values=(row[2], row[3], row[4], row[5]))
@@ -211,7 +211,7 @@ class Registro:
         records = self.tree.get_children()
         for element in records:
             self.tree.delete(element)
-        consulta='SELECT * FROM libros WHERE codigo=?'
+        consulta='SELECT * FROM libros WHERE codigo=? and activo="si"'
         resultado= self.query.ejecutar_consulta(consulta,parametros).fetchone()
         if resultado:
             self.get_libro(resultado)
