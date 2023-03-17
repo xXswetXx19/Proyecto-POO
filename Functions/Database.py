@@ -6,7 +6,7 @@ class Query:
         self.db='database.db' # Base de datos libros
         
     def Iniciar_BaseDatos(self):
-        self.ejecutar_consulta('CREATE TABLE IF NOT EXISTS libros(id INTEGER PRIMARY KEY AUTOINCREMENT, codigo INTEGER, nombre VARCHAR(50),autor VARCHAR(50),precio FLOAT,categoria VARCHAR(50), activo VARCHAR(2))')
+        self.ejecutar_consulta('CREATE TABLE IF NOT EXISTS libros(id INTEGER PRIMARY KEY AUTOINCREMENT, codigo VARCHAR(4), nombre VARCHAR(50),autor VARCHAR(50),precio FLOAT,categoria VARCHAR(50), activo VARCHAR(2))')
         self.ejecutar_consulta('CREATE TABLE IF NOT EXISTS usuarios(id INTEGER PRIMARY KEY AUTOINCREMENT,usuario VARCHAR(50),contraseña VARCHAR(50))')
 
     def ejecutar_consulta(self,consulta,parametros = ()):

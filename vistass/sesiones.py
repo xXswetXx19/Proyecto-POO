@@ -105,10 +105,11 @@ class Registro:
     def validacion(self):
         if len(self.codigo.get()) == 0 or len(self.nombre.get()) == 0 or len(self.autor.get()) == 0 or len(self.precio.get()) == 0 or len(self.entrycategorias.get()) == 0:
             return [False, 'Debe llenar todos los campos para registrar el libro']
-        if not self.codigo.get().isdigit():
-            return [False, 'El codigo debe ser un numero']
-        if not self.precio.get().isdigit():
-            return {False, 'El precio debe ser un numero'}
+        if not len(self.codigo.get()) == 4:
+            return [False, 'El codigo debe tener 4 digitos']
+        if not self.precio.get().replace(",", ".").split(".")[0].isdigit():
+            print(self.precio.get().replace(",", ".").split(".")[0].isdigit())
+            return [False, 'El precio debe ser un numero o decimal']
         return [True]
     
     def add_libro(self):
@@ -120,7 +121,7 @@ class Registro:
             if codeinuse:
                 return messagebox.showinfo(message="Ese codigo ya esta en uso", title="Error")
             consulta = 'INSERT INTO libros VALUES(NULL, ?,?,?,?,?, "si")'
-            parametros = (self.codigo.get(), self.nombre.get(), self.autor.get(), self.precio.get(), self.entrycategorias.get())
+            parametros = (self.codigo.get().upper(), self.nombre.get().capitalize(), self.autor.get().capitalize(), self.precio.get().replace(",","."), self.entrycategorias.get().capitalize())
             self.query.ejecutar_consulta(consulta, parametros)
             messagebox.showinfo(message="Datos guardados")
             self.codigo.delete(0, END)
