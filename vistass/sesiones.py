@@ -141,7 +141,7 @@ class Registro:
 
         ask = messagebox.askyesno(message="¿Estas seguro de eliminar este registro?", title="Eliminar")
         if ask:
-            consulta = 'UPDATE libros SET estado="no" WHERE codigo=?'
+            consulta = 'UPDATE libros SET activo="no" WHERE codigo=?'
             codigo=self.tree.item(self.tree.selection())['text']
             self.query.ejecutar_consulta(consulta,(codigo, ))
             self.get_libro()
