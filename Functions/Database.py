@@ -5,7 +5,7 @@ class Query:
     def __init__(self):
         self.config = {
             'user': 'root',
-            'password': 'S@muel312',
+            'password': '1234',
             'host': 'localhost',
             'database': 'biblioteca',
         }
