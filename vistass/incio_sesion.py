@@ -19,10 +19,10 @@ class Login:
         self.ven.mainloop()
 
     def verificar(self):
-        usu=self.entryuser.get()
-        passw=self.entrypass.get()
-        UsersData = self.Query.ejecutar_consulta('SELECT * FROM usuarios WHERE usuario = ?', (usu,))
-        UsersData = UsersData.fetchone()
+        usu=self.entryuser.get() or None
+        passw=self.entrypass.get() or None
+        UsersData = self.Query.ejecutar_consulta('SELECT * FROM usuarios WHERE usuario = %s', (usu,))
+        UsersData = UsersData[0] if UsersData else None
         if usu and passw:
             if UsersData:
                 Id, Usuario, Contraseña = UsersData

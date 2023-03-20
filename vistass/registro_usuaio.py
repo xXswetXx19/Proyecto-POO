@@ -38,11 +38,11 @@ class RegistroUsuario(tk.Toplevel):
         usuario = self.txt_usuario.get()
         password = self.txt_password.get()
         if usuario and password:
-            check = self.Query.ejecutar_consulta('SELECT * FROM usuarios WHERE usuario = ?', (usuario,))
-            check = check.fetchone()
+            check = self.Query.ejecutar_consulta('SELECT * FROM usuarios WHERE usuario = %s', (usuario,))
+            check = check[0] if len(check) > 0 else None
             if check:
                 return messagebox.showerror(message="Ese usuario ya existe en el sistema", title="Mensaje")
-            self.Query.ejecutar_consulta('INSERT INTO usuarios VALUES(NULL, ?, ?)', (usuario, password))
+            self.Query.ejecutar_consulta('INSERT INTO usuarios VALUES(NULL, %s, %s)', (usuario, password))
             messagebox.showinfo(message="Usuario registrado", title="Mensaje")
             self.destroy()
         else:

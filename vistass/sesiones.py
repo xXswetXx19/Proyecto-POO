@@ -95,6 +95,7 @@ class Registro:
         for element in records:
             self.tree.delete(element)
         if resultado:
+            resultado = resultado[0]
             self.tree.insert('', 0, text=resultado[1], values=(resultado[2], resultado[3], resultado[4], resultado[5]))
         else:
             query = 'SELECT * FROM libros where activo="si" ORDER BY codigo DESC'
@@ -108,19 +109,18 @@ class Registro:
         if not len(self.codigo.get()) == 4:
             return [False, 'El codigo debe tener 4 digitos']
         if not self.precio.get().replace(",", ".").split(".")[0].isdigit():
-            print(self.precio.get().replace(",", ".").split(".")[0].isdigit())
-            return [False, 'El precio debe ser un numero o decimal']
+            return [False, 'El precio debe ser un numero o decimal'] 
         return [True]
     
     def add_libro(self):
         validar = self.validacion()
         if validar[0]:
             # check if the code already exists
-            codeinuse = self.query.ejecutar_consulta('SELECT * FROM libros WHERE codigo = ?', (self.codigo.get(),))
-            codeinuse = codeinuse.fetchone()
+            codeinuse = self.query.ejecutar_consulta('SELECT * FROM libros WHERE codigo = %s', (self.codigo.get(),))
+            codeinuse = codeinuse[0] if len(codeinuse) > 0 else None
             if codeinuse:
                 return messagebox.showinfo(message="Ese codigo ya esta en uso", title="Error")
-            consulta = 'INSERT INTO libros VALUES(NULL, ?,?,?,?,?, "si")'
+            consulta = 'INSERT INTO libros VALUES(NULL, %s,%s,%s,%s,%s, "si")'
             parametros = (self.codigo.get().upper(), self.nombre.get().capitalize(), self.autor.get().capitalize(), self.precio.get().replace(",","."), self.entrycategorias.get().capitalize())
             self.query.ejecutar_consulta(consulta, parametros)
             messagebox.showinfo(message="Datos guardados")
@@ -141,7 +141,7 @@ class Registro:
 
         ask = messagebox.askyesno(message="¿Estas seguro de eliminar este registro?", title="Eliminar")
         if ask:
-            consulta = 'UPDATE libros SET activo="no" WHERE codigo=?'
+            consulta = 'UPDATE libros SET activo="no" WHERE codigo=%s'
             codigo=self.tree.item(self.tree.selection())['text']
             self.query.ejecutar_consulta(consulta,(codigo, ))
             self.get_libro()
@@ -182,17 +182,28 @@ class Registro:
         self.actualizarbutton = Button(self.window_editar, text="Actualizar",command=self.actualizar).grid(row=5, columnspan=2, sticky=W + E)
         
     def validacion_actualizar(self):
-        return len(self.nuevo_codigo.get()) != 0 and len(self.nuevo_nombre.get()) != 0 and len(self.nuevo_autor.get()) != 0 and len(self.nuevo_precio.get()) != 0 and len(self.nueva_categoria.get()) != 0
+        validacion_vacios = len(self.nuevo_codigo.get()) != 0 and len(self.nuevo_nombre.get()) != 0 and len(self.nuevo_autor.get()) != 0 and len(self.nuevo_precio.get()) != 0 and len(self.nueva_categoria.get()) != 0
+        if not validacion_vacios:
+            return messagebox.showinfo(message="Todos los campos son obligatorios", title="Error")
+        validacion_codigo = len(self.nuevo_codigo.get()) == 4
+        if not validacion_codigo:
+            return messagebox.showinfo(message="El codigo debe tener 4 caracteres", title="Error")
+        validacion_type = self.nuevo_nombre.get().isalpha() and self.nuevo_autor.get().isalpha() and self.nueva_categoria.get().isalpha()
+        if not validacion_type:
+            return messagebox.showinfo(message="El nombre, autor y categoria deben ser letras", title="Error")
+        validacion_type = self.nuevo_precio.get().replace(".", "").isdigit()
+        if not validacion_type:
+            return messagebox.showinfo(message="El precio debe ser un numero", title="Error")
+        return True
     
     def actualizar(self):
         if len(self.tree.selection()) == 1 and self.validacion_actualizar():
-            # First check if the new code is already in the database
             codigo = self.tree.item(self.tree.selection())['text']
-            codeinuse = self.query.ejecutar_consulta('SELECT * FROM libros WHERE codigo=?', (self.nuevo_codigo.get(),))
-            codeinuse = codeinuse.fetchone()
-            if codeinuse:
+            codeinuse = self.query.ejecutar_consulta('SELECT * FROM libros WHERE codigo=%s', (self.nuevo_codigo.get(),))
+            codeinuse = codeinuse[0] if len(codeinuse) > 0 else None
+            if codeinuse and codigo != self.nuevo_codigo.get():
                 return messagebox.showinfo(message="Ese codigo ya esta en uso", title="Error")
-            consulta = 'UPDATE libros SET codigo=?, nombre=?, autor=?, precio=?, categoria=? WHERE codigo=?'
+            consulta = 'UPDATE libros SET codigo=%s, nombre=%s, autor=%s, precio=%s, categoria=%s WHERE codigo=%s'
             parametros = (
             self.nuevo_codigo.get(), self.nuevo_nombre.get(), self.nuevo_autor.get(), self.nuevo_precio.get(),
             self.nueva_categoria.get(), codigo)
@@ -200,7 +211,7 @@ class Registro:
             self.get_libro()
             messagebox.showinfo(message="Datos actualizados")
         else:
-            return messagebox.showinfo(message="Por favor, llene todos los campos", title="Error")
+            return messagebox.showinfo(message="Seleccione el registro que desea editar", title="Error")
         
     def buscar_libro(self):
         codigo=str(self.buscar_li.get())
@@ -211,8 +222,8 @@ class Registro:
         records = self.tree.get_children()
         for element in records:
             self.tree.delete(element)
-        consulta='SELECT * FROM libros WHERE codigo=? and activo="si"'
-        resultado= self.query.ejecutar_consulta(consulta,parametros).fetchone()
+        consulta='SELECT * FROM libros WHERE codigo=%s and activo="si"'
+        resultado= self.query.ejecutar_consulta(consulta,parametros) 
         if resultado:
             self.get_libro(resultado)
 
