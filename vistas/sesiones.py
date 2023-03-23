@@ -3,14 +3,13 @@ from tkinter import *
 from Functions.centrado_de_ventana import *
 from tkinter import ttk
 from Functions.Database import *
-from vistass.buscador import Buscador, Query
+from vistas.buscador import Buscador, Query
 
 class Registro:
     def __init__(self):
         self.cv= GuiProcess()
         self.query= Query()
         self.buscar = Buscador()
-        #self.categorias = ['Cientificos', 'Literatura y linguisticos', 'De viajes', 'Biografias', 'Referencia o consulta', 'Monografias', 'Recreativos', 'Poéticos', 'Juveniles', 'Ficción','Comedia']
         self.getWindow3()
         self.getLabels()
         self.getInputs()
@@ -184,16 +183,16 @@ class Registro:
     def validacion_actualizar(self):
         validacion_vacios = len(self.nuevo_codigo.get()) != 0 and len(self.nuevo_nombre.get()) != 0 and len(self.nuevo_autor.get()) != 0 and len(self.nuevo_precio.get()) != 0 and len(self.nueva_categoria.get()) != 0
         if not validacion_vacios:
-            return messagebox.showinfo(message="Todos los campos son obligatorios", title="Error")
+            return False, messagebox.showinfo(message="Todos los campos son obligatorios", title="Error")
         validacion_codigo = len(self.nuevo_codigo.get()) == 4
         if not validacion_codigo:
-            return messagebox.showinfo(message="El codigo debe tener 4 caracteres", title="Error")
+            return False, messagebox.showinfo(message="El codigo debe tener 4 caracteres", title="Error")
         validacion_type = self.nuevo_nombre.get().isalpha() and self.nuevo_autor.get().isalpha() and self.nueva_categoria.get().isalpha()
         if not validacion_type:
-            return messagebox.showinfo(message="El nombre, autor y categoria deben ser letras", title="Error")
+            return False, messagebox.showinfo(message="El nombre, autor y categoria deben ser letras", title="Error")
         validacion_type = self.nuevo_precio.get().replace(".", "").isdigit()
         if not validacion_type:
-            return messagebox.showinfo(message="El precio debe ser un numero", title="Error")
+            return False, messagebox.showinfo(message="El precio debe ser un numero", title="Error")
         return True
     
     def actualizar(self):

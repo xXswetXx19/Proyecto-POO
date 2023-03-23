@@ -1,4 +1,4 @@
-from vistass.incio_sesion import Login
+from vistas.incio_sesion import Login
 from Functions.Database import Query
 
 if __name__ == "__main__":
