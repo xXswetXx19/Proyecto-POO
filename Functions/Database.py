@@ -1,5 +1,5 @@
 import mysql.connector
-from vistass.sesiones import *
+from vistas.sesiones import *
 
 class Query:
     def __init__(self):

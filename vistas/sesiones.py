@@ -16,6 +16,7 @@ class Registro:
         self.getButtons()
         self.tabla()
         self.ajustarFrame()
+        self.bindEvents()
 
     def getWindow3(self):
         self.wind = Tk()
@@ -87,30 +88,38 @@ class Registro:
         ttk.Button(self.frame, text='Guardar libro',command=self.add_libro,style='TButton', width=165).place(x=0, y=133)
         Button(self.frame, text="Eliminar", command=self.eliminar_libro, width=79).place(x=0, y=382)
         Button(self.frame, text="Editar",command=self.editar_libro, width=79).place(x=500, y=382)
-        Button(self.frame,text="Buscar",command=self.buscar_libro,bg="blue",fg="white").place(x=275,y=50)
-        
-    def get_libro(self,resultado=None):
-        records = self.tree.get_children()
-        for element in records:
-            self.tree.delete(element)
+
+        Button(self.frame,text="Buscar",command=self.buscar_libro,bg="blue",fg="white", bd=0).place(x=275,y=50)
+        Button(self.frame,text="Limpiar",command=self.reset_search,bg="orange",fg="white", bd=0).place(x=323,y=50)
+    
+    def reset_search(self):
+        self.buscar_li.delete(0,END)
+        self.get_libro()
+    def get_libro(self, resultado=None):
+        self.tree.delete(*self.tree.get_children())
         if resultado:
-            resultado = resultado[0]
-            self.tree.insert('', 0, text=resultado[1], values=(resultado[2], resultado[3], resultado[4], resultado[5]))
+            for resultado in resultado:
+                self.tree.insert('', 0, text=resultado[1], values=(resultado[2], resultado[3], resultado[4], resultado[5]))
         else:
             query = 'SELECT * FROM libros where activo="si" ORDER BY codigo DESC'
             db_rows = self.query.ejecutar_consulta(query)
             for row in db_rows:
                 self.tree.insert('', 0, text=row[1], values=(row[2], row[3], row[4], row[5]))
+
                 
     def validacion(self):
-        if len(self.codigo.get()) == 0 or len(self.nombre.get()) == 0 or len(self.autor.get()) == 0 or len(self.precio.get()) == 0 or len(self.entrycategorias.get()) == 0:
+        required_fields = [self.codigo, self.nombre, self.autor, self.precio, self.entrycategorias]
+        if not all(field.get() for field in required_fields):
             return [False, 'Debe llenar todos los campos para registrar el libro']
-        if not len(self.codigo.get()) == 4:
-            return [False, 'El codigo debe tener 4 digitos']
+
+        if len(self.codigo.get()) != 4:
+            return [False, 'El código debe tener 4 dígitos']
+
         if not self.precio.get().replace(",", ".").split(".")[0].isdigit():
-            return [False, 'El precio debe ser un numero o decimal'] 
+            return [False, 'El precio debe ser un número o decimal']
+
         return [True]
-    
+
     def add_libro(self):
         validar = self.validacion()
         if validar[0]:
@@ -146,7 +155,7 @@ class Registro:
             self.get_libro()
             messagebox.showinfo(message="Datos eliminados")
             
-    def editar_libro(self):
+    def editar_libro(self, event = None):
         try:
             self.tree.item(self.tree.selection())['values'][0]
         except:
@@ -178,59 +187,67 @@ class Registro:
         self.nuevo_precio.grid(row=3,column=1)
         self.nueva_categoria = Entry(self.window_editar,textvariable=StringVar(self.window_editar,value=self.o_categoria))
         self.nueva_categoria.grid(row=4,column=1)
-        self.actualizarbutton = Button(self.window_editar, text="Actualizar",command=self.actualizar).grid(row=5, columnspan=2, sticky=W + E)
+        self.actualizarbutton = Button(self.window_editar, text="Actualizar",command=self.actualizar, bd=0).grid(row=5, columnspan=2, sticky=W + E)
         
     def validacion_actualizar(self):
-        validacion_vacios = len(self.nuevo_codigo.get()) != 0 and len(self.nuevo_nombre.get()) != 0 and len(self.nuevo_autor.get()) != 0 and len(self.nuevo_precio.get()) != 0 and len(self.nueva_categoria.get()) != 0
-        if not validacion_vacios:
-            return False, messagebox.showinfo(message="Todos los campos son obligatorios", title="Error")
-        validacion_codigo = len(self.nuevo_codigo.get()) == 4
-        if not validacion_codigo:
-            return False, messagebox.showinfo(message="El codigo debe tener 4 caracteres", title="Error")
-        validacion_type = self.nuevo_nombre.get().isalpha() and self.nuevo_autor.get().isalpha() and self.nueva_categoria.get().isalpha()
-        if not validacion_type:
-            return False, messagebox.showinfo(message="El nombre, autor y categoria deben ser letras", title="Error")
-        validacion_type = self.nuevo_precio.get().replace(".", "").isdigit()
-        if not validacion_type:
-            return False, messagebox.showinfo(message="El precio debe ser un numero", title="Error")
+        # Validar que todos los campos estén completos
+        if not all(len(campo.get()) != 0 for campo in [self.nuevo_codigo, self.nuevo_nombre, self.nuevo_autor, self.nuevo_precio, self.nueva_categoria]):
+            messagebox.showinfo(message="Todos los campos son obligatorios", title="Error")
+            self.window_editar.focus()
+            return False
+        # Validar que el código tenga 4 caracteres
+        if len(self.nuevo_codigo.get()) != 4:
+            messagebox.showinfo(message="El código debe tener 4 caracteres", title="Error")
+            self.window_editar.focus()
+            return False
+        # Validar que el nombre, autor y categoría sean letras
+        if not all(campo.get().replace(" ","").isalpha() for campo in [self.nuevo_nombre, self.nuevo_autor, self.nueva_categoria]):
+            messagebox.showinfo(message="El nombre, autor y categoría deben ser letras", title="Error")
+            self.window_editar.focus()
+            return False
+        # Validar que el precio sea un número
+        if not self.nuevo_precio.get().replace(".", "").isdigit():
+            messagebox.showinfo(message="El precio debe ser un número", title="Error")
+            self.window_editar.focus()
+            return False
         return True
+
     
     def actualizar(self):
-        if len(self.tree.selection()) == 1 and self.validacion_actualizar():
-            codigo = self.tree.item(self.tree.selection())['text']
-            codeinuse = self.query.ejecutar_consulta('SELECT * FROM libros WHERE codigo=%s', (self.nuevo_codigo.get(),))
-            codeinuse = codeinuse[0] if len(codeinuse) > 0 else None
-            if codeinuse and codigo != self.nuevo_codigo.get():
-                return messagebox.showinfo(message="Ese codigo ya esta en uso", title="Error")
-            consulta = 'UPDATE libros SET codigo=%s, nombre=%s, autor=%s, precio=%s, categoria=%s WHERE codigo=%s'
-            parametros = (
-            self.nuevo_codigo.get(), self.nuevo_nombre.get(), self.nuevo_autor.get(), self.nuevo_precio.get(),
-            self.nueva_categoria.get(), codigo)
-            self.query.ejecutar_consulta(consulta, parametros)
-            self.get_libro()
-            messagebox.showinfo(message="Datos actualizados")
+        if len(self.tree.selection()) == 1:
+            if self.validacion_actualizar():
+                codigo = self.tree.item(self.tree.selection())['text']
+                codeinuse = self.query.ejecutar_consulta('SELECT * FROM libros WHERE codigo=%s', (self.nuevo_codigo.get(),))
+                codeinuse = codeinuse[0] if len(codeinuse) > 0 else None
+                if codeinuse and codigo != self.nuevo_codigo.get():
+                    return messagebox.showinfo(message="Ese codigo ya esta en uso", title="Error")
+                consulta = 'UPDATE libros SET codigo=%s, nombre=%s, autor=%s, precio=%s, categoria=%s WHERE codigo=%s'
+                parametros = (
+                self.nuevo_codigo.get(), self.nuevo_nombre.get(), self.nuevo_autor.get(), self.nuevo_precio.get(),
+                self.nueva_categoria.get(), codigo)
+                self.query.ejecutar_consulta(consulta, parametros)
+                self.get_libro()
+                messagebox.showinfo(message="Datos actualizados")
+                self.window_editar.destroy()
         else:
             return messagebox.showinfo(message="Seleccione el registro que desea editar", title="Error")
         
-    def buscar_libro(self):
-        codigo=str(self.buscar_li.get())
+    def buscar_libro(self, event = None):
+        codigo=str(self.buscar_li.get()).upper()
         if not codigo:
             self.get_libro()
             return messagebox.showinfo(message="Por favor ingrese un codigo", title="Error")
-        parametros=(codigo,)
         records = self.tree.get_children()
         for element in records:
             self.tree.delete(element)
-        consulta='SELECT * FROM libros WHERE codigo=%s and activo="si"'
+        parametros=(f"%{codigo}%",)
+        consulta='SELECT * FROM libros WHERE codigo LIKE %s and activo="si" ORDER BY codigo DESC'
         resultado= self.query.ejecutar_consulta(consulta,parametros) 
         if resultado:
             self.get_libro(resultado)
 
-
-
-
-
-
-
+    def bindEvents(self):
+        self.tree.bind("<Double-1>", self.editar_libro)
+        self.buscar_li.bind("<Return>", self.buscar_libro)
 
 
