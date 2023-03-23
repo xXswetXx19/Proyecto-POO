@@ -1,14 +1,10 @@
 import mysql.connector
 from vistas.sesiones import *
+from config import MysqlConfig
 
 class Query:
     def __init__(self):
-        self.config = {
-            'user': 'root',
-            'password': 'S@muel312',
-            'host': 'localhost',
-            'database': 'biblioteca',
-        }
+        self.config = MysqlConfig
         
     def Iniciar_BaseDatos(self):
         with mysql.connector.connect(**self.config) as conn:
