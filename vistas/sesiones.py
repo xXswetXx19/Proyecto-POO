@@ -7,7 +7,6 @@ from vistas.buscador import Buscador, Query
 
 class Registro:
     def __init__(self):
-        self.cv= GuiProcess()
         self.query= Query()
         self.buscar = Buscador()
         self.getWindow3()
@@ -25,7 +24,8 @@ class Registro:
         self.wind.iconbitmap("Files\icono.ico")
         self.wind.resizable(0, 0)
         # Creating a Frame Container
-        self.frame = LabelFrame(self.wind, text='Registrar nuevo libro')
+        self.frame = LabelFrame(self.wind, text='Registrar nuevo libro',fg="black")
+        self.frame.configure(bg="#FFE5B4")
         self.frame.pack()
 
     def tabla(self):
@@ -51,15 +51,17 @@ class Registro:
         total_width = max(widget.winfo_reqwidth() for widget in self.frame.winfo_children())
         total_height = sum(widget.winfo_reqheight() for widget in self.frame.winfo_children())
         # Establecer el tamaño total necesario en el frame
+
         self.frame.place_configure(width=total_width, height=total_height)
 
+
     def getLabels(self):
-        Label(self.frame, text='Codigo:').place(x=450, y=10)
-        Label(self.frame, text='Nombre: ').place(x=450, y=30)
-        Label(self.frame, text='Autor: ').place(x=450, y=50)
-        Label(self.frame, text='Precio: ').place(x=450, y=70)
-        Label(self.frame, text='Categoria:').place(x=450, y=90)
-        Label(self.frame, text='Buscar:').place(x=10,y=50)
+        Label(self.frame, text='Codigo:',foreground="#333333", border=1,bg="#FFE5B4",font=("ITALIC", 8, "bold")).place(x=450, y=10)
+        Label(self.frame, text='Nombre: ',foreground="#333333",border=1,bg="#FFE5B4",font=("ITALIC", 8, "bold")).place(x=450, y=30)
+        Label(self.frame, text='Autor: ',foreground="#333333",border=1,bg="#FFE5B4",font=("ITALIC", 8, "bold")).place(x=450, y=50)
+        Label(self.frame, text='Precio: ',foreground="#333333",border=1,bg="#FFE5B4",font=("ITALIC", 8, "bold")).place(x=450, y=70)
+        Label(self.frame, text='Categoria:',foreground="#333333",border=1,bg="#FFE5B4",font=("ITALIC", 8, "bold")).place(x=450, y=90)
+        Label(self.frame, text='Buscar:',foreground="#333333",bg="#FFE5B4",border=1).place(x=10,y=50)
     
     def getInputs(self):
         #input codigo
@@ -84,13 +86,12 @@ class Registro:
         
     def getButtons(self):
         style = ttk.Style()
-        style.configure('TButton', background='red',fg='blue')
-        ttk.Button(self.frame, text='Guardar libro',command=self.add_libro,style='TButton', width=165).place(x=0, y=133)
-        Button(self.frame, text="Eliminar", command=self.eliminar_libro, width=79).place(x=0, y=382)
-        Button(self.frame, text="Editar",command=self.editar_libro, width=79).place(x=500, y=382)
+        Button(self.frame, text='Guardar libro', command=self.add_libro,bg="#87CEEB",font=('ITALIC', 8, 'bold'), width=142).place(x=0, y=133)
+        Button(self.frame, text="Eliminar", bg="#FFFACD",font=('ITALIC', 8, 'bold'),command=self.eliminar_libro, width=79).place(x=0, y=382)
+        Button(self.frame, text="Editar",bg="#E6E6FA",font=('ITALIC', 8, 'bold'),command=self.editar_libro, width=79).place(x=500, y=382)
 
-        Button(self.frame,text="Buscar",command=self.buscar_libro,bg="blue",fg="white", bd=0).place(x=275,y=50)
-        Button(self.frame,text="Limpiar",command=self.reset_search,bg="orange",fg="white", bd=0).place(x=323,y=50)
+        Button(self.frame,text="Buscar",command=self.buscar_libro,bg="#87CEEB", font=('ITALIC', 8, 'bold'), bd=0).place(x=275,y=50)
+        Button(self.frame,text="Limpiar",command=self.reset_search,bg="#87CEEB",font=('ITALIC', 8, 'bold'), bd=0).place(x=323,y=50)
     
     def reset_search(self):
         self.buscar_li.delete(0,END)
@@ -111,13 +112,14 @@ class Registro:
         required_fields = [self.codigo, self.nombre, self.autor, self.precio, self.entrycategorias]
         if not all(field.get() for field in required_fields):
             return [False, 'Debe llenar todos los campos para registrar el libro']
-
         if len(self.codigo.get()) != 4:
             return [False, 'El código debe tener 4 dígitos']
-
         if not self.precio.get().replace(",", ".").split(".")[0].isdigit():
             return [False, 'El precio debe ser un número o decimal']
-
+        if not self.autor.get().replace(" ", "").isalpha():
+            return [False, 'El autor debe ser solo letras']
+        if not self.entrycategorias.get().replace(" ", "").isalpha():
+            return [False, 'La categoria debe ser solo letras']
         return [True]
 
     def add_libro(self):
@@ -249,5 +251,3 @@ class Registro:
     def bindEvents(self):
         self.tree.bind("<Double-1>", self.editar_libro)
         self.buscar_li.bind("<Return>", self.buscar_libro)
-
-

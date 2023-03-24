@@ -1,6 +1,6 @@
 MysqlConfig = {
     'user': 'root',
-    'password': '',
+    'password': 'S@muel312',
     'host': 'localhost',
     'database': 'biblioteca',
 }
